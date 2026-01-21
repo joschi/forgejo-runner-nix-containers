@@ -1,13 +1,6 @@
 {
   "$schema": "https://docs.renovatebot.com/renovate-schema.json",
-  "schedule": ["before 4am"],
-  "nix": {
-    "enabled": true
-  },
-  "lockFileMaintenance": {
-    "enabled": true,
-    "schedule": ["before 4am"],
-    "automerge": true,
-    "automergeType": "branch"
-  }
+  "extends": [
+    "config:best-practices"
+  ]
 }
