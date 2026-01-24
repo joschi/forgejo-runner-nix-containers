@@ -79,7 +79,7 @@ jobs:
         run: nix build -L ".#${VARIANT}"
 
       - name: Login
-        if: ${{ github.ref_name == 'main' }}
+        #if: ${{ github.ref_name == 'main' }}
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: >-
@@ -89,11 +89,73 @@ jobs:
           --password "${GH_TOKEN}"
 
       - name: Push
-        if: ${{ github.ref_name == 'main' }}
+        #if: ${{ github.ref_name == 'main' }}
         run: >-
           nix run nixpkgs#skopeo --
           copy docker-archive:result
           docker://${REGISTRY}/${REPO_OWNER}/forgejo-${VARIANT}:latest-${ARCHITECTURE}
+
+      - name: Fetch image digest
+        id: digest
+        #if: ${{ github.ref_name == 'main' }}
+        run: >-
+          nix run nixpkgs#skopeo --
+          inspect
+          --format 'digest={{ .Digest }}'
+          docker://${REGISTRY}/${REPO_OWNER}/forgejo-${VARIANT}:latest-${ARCHITECTURE}
+          >> "${GITHUB_OUTPUT}"
+
+      # https://github.com/sigstore/cosign/issues/587
+      - name: Copy credentials for cosign
+        #if: ${{ github.ref_name == 'main' }}
+        run: |
+          mkdir -p ~/.docker
+          cp -v ${XDG_RUNTIME_DIR}/containers/auth.json ~/.docker/config.json
+
+      - name: Sign image with static key
+        #if: ${{ github.ref_name == 'main' }}
+        env:
+          COSIGN_PRIVATE_KEY: ${{ secrets.COSIGN_PRIVATE_KEY }}
+          COSIGN_PASSWORD: ${{ secrets.COSIGN_PASSWORD }}
+          DIGEST: ${{ steps.digest.outputs.digest }}
+        run: >-
+          nix run nixpkgs#cosign --
+          sign
+          --yes
+          --key env://COSIGN_PRIVATE_KEY
+          -a "repo=${{ github.repository }}"
+          -a "workflow=${{ github.workflow }}"
+          -a "ref=${{ github.sha }}"
+          ${REGISTRY}/${REPO_OWNER}/forgejo-${VARIANT}:latest-${ARCHITECTURE}@${DIGEST}
+
+      - name: Sign with GitHub OIDC Token
+        #if: ${{ github.ref_name == 'main' }}
+        env:
+          DIGEST: ${{ steps.digest.outputs.digest }}
+        run: >-
+          nix run nixpkgs#cosign --
+          sign
+          --yes
+          -a "repo=${{ github.repository }}"
+          -a "workflow=${{ github.workflow }}"
+          -a "ref=${{ github.sha }}"
+          ${REGISTRY}/${REPO_OWNER}/forgejo-${VARIANT}:latest-${ARCHITECTURE}@${DIGEST}
+
+      - name: Verify container image
+        #if: ${{ github.ref_name == 'main' }}
+        env:
+          DIGEST: ${{ steps.digest.outputs.digest }}
+        run: >-
+          nix run nixpkgs#cosign --
+          verify
+          --key cosign.pub
+          ${REGISTRY}/${REPO_OWNER}/forgejo-${VARIANT}:latest-${ARCHITECTURE}@${DIGEST}
+          #nix run nixpkgs#cosign --
+          #verify
+          #--certificate-oidc-issuer https://token.actions.githubusercontent.com
+          #--certificate-identity-regexp="https://github.com/$REPO"
+          #-o text
+          #${REGISTRY}/${REPO_OWNER}/forgejo-${VARIANT}:latest-${ARCHITECTURE}
 
   merge:
     name: Create and Push Manifest
@@ -111,7 +173,7 @@ jobs:
       contents: "read"
       packages: "write"
     steps:
-      - name: Login to Docker Hub
+      - name: Login to container registry
         uses: docker/login-action@5e57cd118135c172c3672efd75eb46360885c0ef # v3.6.0
         with:
           registry: ${{ env.REGISTRY }}
