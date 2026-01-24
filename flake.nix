@@ -25,6 +25,7 @@
             pkgs.busybox
             pkgs.cacert
             pkgs.curl
+            pkgs.forgejo-cli
             pkgs.gitMinimal
             pkgs.git-lfs
             pkgs.nodejs_24
