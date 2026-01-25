@@ -79,7 +79,7 @@ jobs:
         run: nix build -L ".#${VARIANT}"
 
       - name: Login
-        if: ${{ github.ref_name == 'main' }}
+        #if: ${{ github.ref_name == 'main' }}
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: >-
@@ -89,7 +89,7 @@ jobs:
           --password "${GH_TOKEN}"
 
       - name: Push
-        if: ${{ github.ref_name == 'main' }}
+        #if: ${{ github.ref_name == 'main' }}
         run: >-
           nix run nixpkgs#skopeo --
           copy docker-archive:result
@@ -97,7 +97,7 @@ jobs:
 
   merge:
     name: Create and Push Manifest
-    if: ${{ github.ref_name == 'main' }}
+    #if: ${{ github.ref_name == 'main' }}
     runs-on: ubuntu-24.04
     strategy:
       matrix:
@@ -111,23 +111,97 @@ jobs:
       contents: "read"
       packages: "write"
     steps:
-      - name: Login to Docker Hub
-        uses: docker/login-action@5e57cd118135c172c3672efd75eb46360885c0ef # v3.6.0
-        with:
-          registry: ${{ env.REGISTRY }}
-          username: ${{ github.repository_owner }}
-          password: ${{ secrets.GITHUB_TOKEN }}
+      - uses: DeterminateSystems/nix-installer-action@c5a866b6ab867e88becbed4467b93592bce69f8a # v21
 
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@8d2750c68a42422c14e847fe6c8ac0403b4cbd6f # v3.12.0
+      - uses: DeterminateSystems/magic-nix-cache-action@565684385bcd71bad329742eefe8d12f2e765b39 # v13
+        with:
+          use-flakehub: false
+
+      # see https://github.com/actions/runner-images/issues/10443
+      - run: sudo sysctl -w kernel.apparmor_restrict_unprivileged_userns=0
+
+      - name: Login
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: >-
+          nix run nixpkgs#buildah --
+          login "${REGISTRY}"
+          --username "${REPO_OWNER}"
+          --password "${GH_TOKEN}"
 
       - name: Create manifest
-        run: |
-          docker buildx imagetools create \
-            -t ${REGISTRY}/${REPO_OWNER}/forgejo-${VARIANT}:latest \
-            ${REGISTRY}/${REPO_OWNER}/forgejo-${VARIANT}:latest-amd64 \
-            ${REGISTRY}/${REPO_OWNER}/forgejo-${VARIANT}:latest-arm64
+        run: >-
+          nix run nixpkgs#buildah --
+          manifest create
+          ${REGISTRY}/${REPO_OWNER}/forgejo-${VARIANT}:latest
+          ${REGISTRY}/${REPO_OWNER}/forgejo-${VARIANT}:latest-amd64
+          ${REGISTRY}/${REPO_OWNER}/forgejo-${VARIANT}:latest-arm64
+
+      - name: Push manifest
+        run: >-
+          nix run nixpkgs#buildah --
+          manifest push
+          ${REGISTRY}/${REPO_OWNER}/forgejo-${VARIANT}:latest
 
       - name: Inspect image
+        run: >-
+          nix run nixpkgs#skopeo --
+          inspect
+          docker://${REGISTRY}/${REPO_OWNER}/forgejo-${VARIANT}:latest
+
+      - name: Fetch image digest
+        id: digest
+        run: >-
+          nix run nixpkgs#skopeo --
+          inspect
+          --format 'digest={{ .Digest }}'
+          docker://${REGISTRY}/${REPO_OWNER}/forgejo-${VARIANT}:latest
+          >> "${GITHUB_OUTPUT}"
+
+      # https://github.com/sigstore/cosign/issues/587
+      - name: Copy credentials for cosign
         run: |
-          docker buildx imagetools inspect ${REGISTRY}/${REPO_OWNER}/forgejo-${VARIANT}:latest
+          mkdir -p ~/.docker
+          cp -v ${XDG_RUNTIME_DIR}/containers/auth.json ~/.docker/config.json
+
+      - name: Sign image with static key
+        env:
+          COSIGN_PRIVATE_KEY: ${{ secrets.COSIGN_PRIVATE_KEY }}
+          COSIGN_PASSWORD: ${{ secrets.COSIGN_PASSWORD }}
+          DIGEST: ${{ steps.digest.outputs.digest }}
+        run: >-
+          nix run nixpkgs#cosign --
+          sign
+          --yes
+          --recursive
+          --key env://COSIGN_PRIVATE_KEY
+          -a "repo=${GITHUB_REPOSITORY}"
+          -a "workflow=${GITHUB_WORKFLOW}"
+          -a "ref=${GITHUB_SHA}"
+          ${REGISTRY}/${REPO_OWNER}/forgejo-${VARIANT}:latest@${DIGEST}
+
+      - name: Sign with GitHub OIDC Token
+        env:
+          DIGEST: ${{ steps.digest.outputs.digest }}
+        run: >-
+          nix run nixpkgs#cosign --
+          sign
+          --yes
+          --recursive
+          -a "repo=${GITHUB_REPOSITORY}"
+          -a "workflow=${GITHUB_WORKFLOW}"
+          -a "ref=${GITHUB_SHA}"
+          ${REGISTRY}/${REPO_OWNER}/forgejo-${VARIANT}:latest@${DIGEST}
+
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          persist-credentials: false
+
+      - name: Verify image signatures
+        env:
+          DIGEST: ${{ steps.digest.outputs.digest }}
+        run: >-
+          nix run nixpkgs#cosign --
+          verify
+          --key cosign.pub
+          ${REGISTRY}/${REPO_OWNER}/forgejo-${VARIANT}:latest@${DIGEST}
