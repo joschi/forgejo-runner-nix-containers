@@ -79,7 +79,7 @@ jobs:
         run: nix build -L ".#${VARIANT}"
 
       - name: Login
-        #if: ${{ github.ref_name == 'main' }}
+        if: ${{ github.ref_name == 'main' }}
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: >-
@@ -89,7 +89,7 @@ jobs:
           --password "${GH_TOKEN}"
 
       - name: Push
-        #if: ${{ github.ref_name == 'main' }}
+        if: ${{ github.ref_name == 'main' }}
         run: >-
           nix run nixpkgs#skopeo --
           copy docker-archive:result
@@ -97,7 +97,7 @@ jobs:
 
   merge:
     name: Create and Push Manifest
-    #if: ${{ github.ref_name == 'main' }}
+    if: ${{ github.ref_name == 'main' }}
     runs-on: ubuntu-24.04
     strategy:
       matrix:
