@@ -67,6 +67,12 @@ The built container images can be verified with `cosign` using the [public key i
 cosign verify --key cosign.pub ghcr.io/joschi/forgejo-nix:latest
 ```
 
+It can also be verified against GitHub directly:
+
+```shell
+cosign verify ghcr.io/joschi/forgejo-nix:latest --certificate-oidc-issuer https://token.actions.githubusercontent.com --certificate-identity-regexp="https://github.com/joschi/forgejo-runner-nix-containers"
+```
+
 ## Credits
 
 This project has been greatly inspired by and is based on https://codeberg.org/nix-actions/container
