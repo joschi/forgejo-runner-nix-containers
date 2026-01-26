@@ -21,9 +21,11 @@
         let
           pkgs = nixpkgs.legacyPackages.${system};
           defaultContents = [
+            pkgs.attic-client
             pkgs.bash
             pkgs.busybox
             pkgs.cacert
+            pkgs.cachix
             pkgs.curl
             pkgs.forgejo-cli
             pkgs.gitMinimal
