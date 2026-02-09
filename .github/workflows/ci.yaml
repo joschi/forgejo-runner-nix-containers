@@ -54,6 +54,7 @@ jobs:
         variant:
           - "nix"
           - "lix"
+          - "detsys-nix"
         build:
           - runner: ubuntu-24.04
             architecture: amd64
@@ -101,7 +102,7 @@ jobs:
     runs-on: ubuntu-24.04
     strategy:
       matrix:
-        variant: ["nix", "lix"]
+        variant: ["nix", "lix", "detsys-nix"]
     env:
       VARIANT: ${{ matrix.variant }}
     needs:

@@ -2,7 +2,11 @@
 
 > Nix containers for usage with Forgejo Actions
 
-There are currently two container images, one with the standard [Nix][nix] implementation and one with [Lix][lix].
+There are currently three container images:
+
+- [Nix][nix]
+- [Lix][lix]
+- [Determinate Systems Nix][detsys-nix]
 
 ## Components
 
@@ -11,7 +15,7 @@ There are currently two container images, one with the standard [Nix][nix] imple
 - [BusyBox][busybox]
 - [Cachix][cachix]
 - [curl][curl]
-- [Nix][nix] or [Lix][lix] with [flakes][flakes] enabled
+- [Nix][nix], [Determinate Systems Nix][detsys-nix] or [Lix][lix] with [flakes][flakes] enabled
 - [Git][git] with [LFS][lfs]
 - [Node.js][nodejs]
 - [Forgejo CLI client][forgejo-cli]
@@ -22,6 +26,7 @@ There are currently two container images, one with the standard [Nix][nix] imple
 [cachix]: https://cachix.org
 [curl]: https://curl.se
 [nix]: https://nixos.org
+[detsys-nix]: https://determinate.systems/nix/
 [lix]: https://lix.systems
 [flakes]: https://wiki.nixos.org/wiki/Flakes
 [git]: https://git-scm.com
@@ -37,6 +42,7 @@ The containers can be used with Forgejo Actions by setting up the appropriate la
 ```yaml
 runner:
   labels:
+    - "detsys-nix-latest:docker://ghcr.io/joschi/forgejo-detsys-nix:latest"
     - "nix-latest:docker://ghcr.io/joschi/forgejo-nix:latest"
     - "lix-latest:docker://ghcr.io/joschi/forgejo-lix:latest"
 ```
@@ -51,6 +57,7 @@ runner:
   "token": "864e6019009e1635d98adf3935b305d32494d42a",
   "address": "https://code.forgejo.org/",
   "labels": [
+    "detsys-nix-latest:docker://ghcr.io/joschi/forgejo-detsys-nix:latest",
     "nix-latest:docker://ghcr.io/joschi/forgejo-nix:latest",
     "lix-latest:docker://ghcr.io/joschi/forgejo-lix:latest"
   ]

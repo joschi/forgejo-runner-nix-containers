@@ -2,11 +2,17 @@
   description = "A Nix container for usage with Forgejo Actions";
 
   inputs = {
+    determinate.url = "https://flakehub.com/f/DeterminateSystems/determinate/*";
     nixpkgs.url = "github:NixOS/nixpkgs/nixos-25.11";
   };
 
   outputs =
-    { self, nixpkgs, ... }:
+    {
+      self,
+      nixpkgs,
+      determinate,
+      ...
+    }:
     let
       lib = nixpkgs.lib;
       systems = [
@@ -82,6 +88,33 @@
               Labels = {
                 "org.opencontainers.image.source" = "https://github.com/joschi/forgejo-runner-nix-containers";
                 "org.opencontainers.image.description" = "A Lix container for usage with Forgejo Actions";
+                "org.opencontainers.image.licenses" = lib.licenses.cc0.spdxId;
+              };
+            };
+          };
+
+          detsys-nix = pkgs.dockerTools.buildLayeredImage {
+            name = "detsys-nix-actions";
+
+            modules = [ determinate.nixosModules.default ];
+
+            contents = defaultContents;
+
+            extraCommands = ''
+              install -dm 1777 tmp
+              install -dm 1777 var/tmp
+            '';
+
+            config = {
+              Entrypoint = [ "/bin/bash" ];
+              Env = [
+                "USER=root"
+                "SSL_CERT_FILE=${pkgs.cacert}/etc/ssl/certs/ca-bundle.crt"
+              ];
+              Labels = {
+                "org.opencontainers.image.source" = "https://github.com/joschi/forgejo-runner-nix-containers";
+                "org.opencontainers.image.description" =
+                  "A Determinate Systems Nix container for usage with Forgejo Actions";
                 "org.opencontainers.image.licenses" = lib.licenses.cc0.spdxId;
               };
             };
