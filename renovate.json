@@ -2,7 +2,8 @@
   "$schema": "https://docs.renovatebot.com/renovate-schema.json",
   "extends": [
     "config:best-practices",
-    "schedule:automergeDaily"
+    "schedule:automergeDaily",
+    "schedule:daily"
   ],
   "nix": {
     "enabled": true
