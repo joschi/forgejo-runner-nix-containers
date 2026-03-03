@@ -5,6 +5,10 @@
     "schedule:automergeDaily",
     "schedule:daily"
   ],
+  "lockFileMaintenance": {
+    "enabled": true,
+    "automerge": true
+  },
   "nix": {
     "enabled": true
   }
