@@ -1,7 +1,9 @@
 name: "GitHub Actions Security Analysis with zizmor 🌈"
 on:
   push:
-    branches: ["main"]
+    branches:
+      - main
+      - nixos-25.11
   pull_request:
     branches: ["**"]
 permissions: {}

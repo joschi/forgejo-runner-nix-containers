@@ -3,9 +3,11 @@ on:
   push:
     branches:
       - main
+      - nixos-25.11
   pull_request:
     branches:
       - main
+      - nixos-25.11
 permissions: {}
 
 env:
