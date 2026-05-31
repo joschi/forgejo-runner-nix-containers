@@ -3,9 +3,13 @@ on:
   push:
     branches:
       - main
+      - nixos-25.11
+      - nixos-26.05
   pull_request:
     branches:
       - main
+      - nixos-25.11
+      - nixos-26.05
 permissions: {}
 
 env:
@@ -79,7 +83,10 @@ jobs:
         run: nix build -L ".#${VARIANT}"
 
       - name: Login
-        if: ${{ github.ref_name == 'main' }}
+        if: |
+          github.ref_name == 'main' ||
+          github.ref_name == 'nixos-25.11' ||
+          github.ref_name == 'nixos-26.05'
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: >-
@@ -89,7 +96,10 @@ jobs:
           --password "${GH_TOKEN}"
 
       - name: Push
-        if: ${{ github.ref_name == 'main' }}
+        if: |
+          github.ref_name == 'main' ||
+          github.ref_name == 'nixos-25.11' ||
+          github.ref_name == 'nixos-26.05'
         run: >-
           nix run nixpkgs#skopeo --
           copy docker-archive:result
@@ -97,7 +107,10 @@ jobs:
 
   merge:
     name: Create and Push Manifest
-    if: ${{ github.ref_name == 'main' }}
+    if: |
+      github.ref_name == 'main' ||
+      github.ref_name == 'nixos-25.11' ||
+      github.ref_name == 'nixos-26.05'
     runs-on: ubuntu-24.04
     strategy:
       matrix:
