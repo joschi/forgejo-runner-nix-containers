@@ -83,6 +83,10 @@ jobs:
       - name: Build
         run: nix build -L ".#${VARIANT}"
 
+      - name: Update /etc/containers/registries.conf
+        run: |
+          echo 'unqualified-search-registries = ["docker.io", "quay.io"]' | sudo tee /etc/containers/registries.conf
+
       - name: Login
         if: |
           github.ref_name == 'main' ||
@@ -133,6 +137,10 @@ jobs:
 
       # see https://github.com/actions/runner-images/issues/10443
       - run: sudo sysctl -w kernel.apparmor_restrict_unprivileged_userns=0
+
+      - name: Update /etc/containers/registries.conf
+        run: |
+          echo 'unqualified-search-registries = ["docker.io", "quay.io"]' | sudo tee /etc/containers/registries.conf
 
       - name: Login
         env:
