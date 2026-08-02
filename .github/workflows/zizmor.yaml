@@ -3,7 +3,7 @@ on:
   push:
     branches:
       - main
-      - nixos-26.05
+      - master
   pull_request:
     branches: ["**"]
 permissions: {}
