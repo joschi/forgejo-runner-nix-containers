@@ -3,11 +3,13 @@ on:
   push:
     branches:
       - main
+      - master
       - nixos-unstable
       - nixos-26.05
   pull_request:
     branches:
       - main
+      - master
       - nixos-unstable
       - nixos-26.05
 permissions: {}
@@ -90,6 +92,7 @@ jobs:
       - name: Login
         if: |
           github.ref_name == 'main' ||
+          github.ref_name == 'master' ||
           github.ref_name == 'nixos-unstable' ||
           github.ref_name == 'nixos-26.05'
         env:
@@ -103,6 +106,7 @@ jobs:
       - name: Push
         if: |
           github.ref_name == 'main' ||
+          github.ref_name == 'master' ||
           github.ref_name == 'nixos-unstable' ||
           github.ref_name == 'nixos-26.05'
         run: >-
@@ -114,6 +118,7 @@ jobs:
     name: Create and Push Manifest
     if: |
       github.ref_name == 'main' ||
+      github.ref_name == 'master' ||
       github.ref_name == 'nixos-unstable' ||
       github.ref_name == 'nixos-26.05'
     runs-on: ubuntu-24.04
