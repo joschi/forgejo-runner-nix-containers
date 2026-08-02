@@ -3,16 +3,19 @@ on:
   push:
     branches:
       - main
+      - nixos-unstable
       - nixos-26.05
   pull_request:
     branches:
       - main
+      - nixos-unstable
       - nixos-26.05
 permissions: {}
 
 env:
   REGISTRY: ghcr.io
   REPO_OWNER: ${{ github.repository_owner }}
+  IMAGE_TAG: latest
 
 jobs:
   check:
@@ -87,6 +90,7 @@ jobs:
       - name: Login
         if: |
           github.ref_name == 'main' ||
+          github.ref_name == 'nixos-unstable' ||
           github.ref_name == 'nixos-26.05'
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -99,16 +103,18 @@ jobs:
       - name: Push
         if: |
           github.ref_name == 'main' ||
+          github.ref_name == 'nixos-unstable' ||
           github.ref_name == 'nixos-26.05'
         run: >-
           nix run nixpkgs#skopeo --
           copy docker-archive:result
-          docker://${REGISTRY}/${REPO_OWNER}/forgejo-${VARIANT}:latest-${ARCHITECTURE}
+          docker://${REGISTRY}/${REPO_OWNER}/forgejo-${VARIANT}:${IMAGE_TAG}-${ARCHITECTURE}
 
   merge:
     name: Create and Push Manifest
     if: |
       github.ref_name == 'main' ||
+      github.ref_name == 'nixos-unstable' ||
       github.ref_name == 'nixos-26.05'
     runs-on: ubuntu-24.04
     strategy:
@@ -149,21 +155,21 @@ jobs:
         run: >-
           nix run nixpkgs#buildah --
           manifest create
-          ${REGISTRY}/${REPO_OWNER}/forgejo-${VARIANT}:latest
-          ${REGISTRY}/${REPO_OWNER}/forgejo-${VARIANT}:latest-amd64
-          ${REGISTRY}/${REPO_OWNER}/forgejo-${VARIANT}:latest-arm64
+          ${REGISTRY}/${REPO_OWNER}/forgejo-${VARIANT}:${IMAGE_TAG}
+          ${REGISTRY}/${REPO_OWNER}/forgejo-${VARIANT}:${IMAGE_TAG}-amd64
+          ${REGISTRY}/${REPO_OWNER}/forgejo-${VARIANT}:${IMAGE_TAG}-arm64
 
       - name: Push manifest
         run: >-
           nix run nixpkgs#buildah --
           manifest push
-          ${REGISTRY}/${REPO_OWNER}/forgejo-${VARIANT}:latest
+          ${REGISTRY}/${REPO_OWNER}/forgejo-${VARIANT}:${IMAGE_TAG}
 
       - name: Inspect image
         run: >-
           nix run nixpkgs#skopeo --
           inspect
-          docker://${REGISTRY}/${REPO_OWNER}/forgejo-${VARIANT}:latest
+          docker://${REGISTRY}/${REPO_OWNER}/forgejo-${VARIANT}:${IMAGE_TAG}
 
       - name: Fetch image digest
         id: digest
@@ -171,7 +177,7 @@ jobs:
           nix run nixpkgs#skopeo --
           inspect
           --format 'digest={{ .Digest }}'
-          docker://${REGISTRY}/${REPO_OWNER}/forgejo-${VARIANT}:latest
+          docker://${REGISTRY}/${REPO_OWNER}/forgejo-${VARIANT}:${IMAGE_TAG}
           >> "${GITHUB_OUTPUT}"
 
       # https://github.com/sigstore/cosign/issues/587
@@ -194,7 +200,7 @@ jobs:
           -a "repo=${GITHUB_REPOSITORY}"
           -a "workflow=${GITHUB_WORKFLOW}"
           -a "ref=${GITHUB_SHA}"
-          ${REGISTRY}/${REPO_OWNER}/forgejo-${VARIANT}:latest@${DIGEST}
+          ${REGISTRY}/${REPO_OWNER}/forgejo-${VARIANT}:${IMAGE_TAG}@${DIGEST}
 
       - name: Sign with GitHub OIDC Token
         env:
@@ -207,7 +213,7 @@ jobs:
           -a "repo=${GITHUB_REPOSITORY}"
           -a "workflow=${GITHUB_WORKFLOW}"
           -a "ref=${GITHUB_SHA}"
-          ${REGISTRY}/${REPO_OWNER}/forgejo-${VARIANT}:latest@${DIGEST}
+          ${REGISTRY}/${REPO_OWNER}/forgejo-${VARIANT}:${IMAGE_TAG}@${DIGEST}
 
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
@@ -220,4 +226,4 @@ jobs:
           nix run nixpkgs#cosign --
           verify
           --key cosign.pub
-          ${REGISTRY}/${REPO_OWNER}/forgejo-${VARIANT}:latest@${DIGEST}
+          ${REGISTRY}/${REPO_OWNER}/forgejo-${VARIANT}:${IMAGE_TAG}@${DIGEST}
