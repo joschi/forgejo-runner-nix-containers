@@ -30,6 +30,7 @@
             pkgs.forgejo-cli
             pkgs.gitMinimal
             pkgs.git-lfs
+            pkgs.jq
             pkgs.nodejs_24
             ./files
           ];
