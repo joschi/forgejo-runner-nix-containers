@@ -131,7 +131,10 @@ jobs:
           use-flakehub: false
 
       # see https://github.com/actions/runner-images/issues/10443
-      - run: sudo sysctl -w kernel.apparmor_restrict_unprivileged_userns=0
+      - run: |
+          sudo sysctl -w kernel.apparmor_restrict_unprivileged_userns=0
+          sudo mkdir -p /run/containers /var/lib/containers
+          sudo chown -R runner:runner /run/containers /var/lib/containers
 
       - name: Update /etc/containers/registries.conf
         run: |
