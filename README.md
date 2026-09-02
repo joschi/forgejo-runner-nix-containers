@@ -13,6 +13,7 @@ There are currently two container images, one with the standard [Nix][nix] imple
 - [curl][curl]
 - [Nix][nix] or [Lix][lix] with [flakes][flakes] enabled
 - [Git][git] with [LFS][lfs]
+- [JQ][jq]
 - [Node.js][nodejs]
 - [Forgejo CLI client][forgejo-cli]
 
@@ -25,6 +26,7 @@ There are currently two container images, one with the standard [Nix][nix] imple
 [lix]: https://lix.systems
 [flakes]: https://wiki.nixos.org/wiki/Flakes
 [git]: https://git-scm.com
+[jq]: https://jqlang.org
 [lfs]: https://git-lfs.com
 [nodejs]: https://nodejs.org
 [forgejo-cli]: https://codeberg.org/forgejo-contrib/forgejo-cli
