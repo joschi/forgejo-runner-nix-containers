@@ -16,7 +16,7 @@ jobs:
         with:
           persist-credentials: true
       - uses: DeterminateSystems/determinate-nix-action@021c8a1bd3570eb21f5c20a054812b0c4d9ca614 # v3.22.3
-      - uses: DeterminateSystems/update-flake-lock@834c491b2ece4de0bbd00d85214bb5e83b4da5c6 # v28
+      - uses: DeterminateSystems/update-flake-lock@da03c0f078bc4b2c37ee4f7e072d34bf8f188bb3 # v29
         with:
           token: ${{ secrets.GH_TOKEN_FOR_UPDATES }}
           commit-msg: "chore(deps): update Nix flake inputs"
