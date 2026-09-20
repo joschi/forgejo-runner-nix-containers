@@ -18,7 +18,7 @@ env:
 jobs:
   check:
     name: Check flake
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-26.04
     permissions:
       id-token: "write"
       contents: "read"
@@ -111,7 +111,7 @@ jobs:
     if: |
       github.ref_name == 'main' ||
       github.ref_name == 'nixos-26.05'
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-26.04
     strategy:
       matrix:
         variant: ["nix", "lix"]
