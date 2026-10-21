@@ -11,6 +11,13 @@
     "enabled": true,
     "automerge": true
   },
+  "packageRules": [
+    {
+      "matchManagers": ["github-actions"],
+      "matchUpdateTypes": ["minor", "patch", "digest", "pin", "pinDigest"],
+      "automerge": true
+    }
+  ],
   "nix": {
     "enabled": true
   }
