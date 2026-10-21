@@ -8,7 +8,7 @@
   ],
   "baseBranchPatterns": ["main", "master", "nixos-unstable", "nixos-26.05"],
   "lockFileMaintenance": {
-    "enabled": true,
+    "extends": ["schedule:daily"],
     "automerge": true
   },
   "packageRules": [
