@@ -1,0 +1,2 @@
+runner ALL=(ALL) NOPASSWD: ALL
+runneradmin ALL=(ALL) NOPASSWD: ALL
