@@ -21,6 +21,7 @@
         let
           pkgs = nixpkgs.legacyPackages.${system};
           defaultContents = [
+            pkgs.gnutar
             pkgs.attic-client
             pkgs.bash
             pkgs.busybox
@@ -32,11 +33,13 @@
             pkgs.git-lfs
             pkgs.jq
             pkgs.nodejs_24
+            pkgs.sudo
+            pkgs.sqlite
             ./files
           ];
         in
         {
-          nix = pkgs.dockerTools.buildLayeredImage {
+          nix = pkgs.dockerTools.buildLayeredImageWithNixDb {
             name = "nix-actions";
 
             contents = defaultContents ++ [
@@ -62,7 +65,7 @@
             };
           };
 
-          lix = pkgs.dockerTools.buildLayeredImage {
+          lix = pkgs.dockerTools.buildLayeredImageWithNixDb {
             name = "lix-actions";
 
             contents = defaultContents ++ [
