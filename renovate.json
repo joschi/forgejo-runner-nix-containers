@@ -6,7 +6,7 @@
     "schedule:automergeDaily",
     "schedule:daily"
   ],
-  "baseBranchPatterns": ["main", "master", "nixos-unstable", "nixos-26.05"],
+  "baseBranchPatterns": ["main", "master", "nixos-unstable", "nixos-26.05", "nixos-26.11"],
   "lockFileMaintenance": {
     "extends": ["schedule:daily"],
     "automerge": true

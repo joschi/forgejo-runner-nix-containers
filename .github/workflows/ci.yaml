@@ -6,12 +6,14 @@ on:
       - master
       - nixos-unstable
       - nixos-26.05
+      - nixos-26.11
   pull_request:
     branches:
       - main
       - master
       - nixos-unstable
       - nixos-26.05
+      - nixos-26.11
 permissions: {}
 
 env:
@@ -94,7 +96,8 @@ jobs:
           github.ref_name == 'main' ||
           github.ref_name == 'master' ||
           github.ref_name == 'nixos-unstable' ||
-          github.ref_name == 'nixos-26.05'
+          github.ref_name == 'nixos-26.05' ||
+          github.ref_name == 'nixos-26.11'
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: >-
@@ -108,7 +111,8 @@ jobs:
           github.ref_name == 'main' ||
           github.ref_name == 'master' ||
           github.ref_name == 'nixos-unstable' ||
-          github.ref_name == 'nixos-26.05'
+          github.ref_name == 'nixos-26.05' ||
+          github.ref_name == 'nixos-26.11'
         run: >-
           nix run nixpkgs#skopeo --
           copy docker-archive:result
@@ -120,7 +124,8 @@ jobs:
       github.ref_name == 'main' ||
       github.ref_name == 'master' ||
       github.ref_name == 'nixos-unstable' ||
-      github.ref_name == 'nixos-26.05'
+      github.ref_name == 'nixos-26.05' ||
+      github.ref_name == 'nixos-26.11'
     runs-on: ubuntu-26.04
     strategy:
       matrix:

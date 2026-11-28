@@ -6,6 +6,7 @@ on:
       - master
       - nixos-unstable
       - nixos-26.05
+      - nixos-26.11
   pull_request:
     branches: ["**"]
 permissions: {}
